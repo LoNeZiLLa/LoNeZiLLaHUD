@@ -68,10 +68,11 @@ function ArmorBar:draw()
 
     -- Early out if HUD shouldn't be shown.
     if not shouldShowHUD() then return end;
+	if isRaceMode() then return end;
 
 	local player = getPlayer();
 
-    -- Options  
+    -- Options
     local showFrame = self.userData.showFrame;
     local showIcon = self.userData.showIcon;
     local flatBar = self.userData.flatBar;
@@ -79,8 +80,8 @@ function ArmorBar:draw()
     local colorIcon = self.userData.colorIcon;
     
     -- Size and spacing
-    local frameWidth = 460;
-    local frameHeight = 55;
+    local frameWidth = 600;
+    local frameHeight = 45;
     local framePadding = 5;
     local numberSpacing = 100;
     local iconSpacing;
@@ -95,13 +96,13 @@ function ArmorBar:draw()
     local iconAlpha = self.userData.iconAlpha
 
     local barColor;
-    if player.armorProtection == 0 then barColor = Color(2,167,46, barAlpha) end
-    if player.armorProtection == 1 then barColor = Color(245,215,50, barAlpha) end
+    if player.armorProtection == 0 then barColor = Color(0,255,0, barAlpha) end
+    if player.armorProtection == 1 then barColor = Color(245,245,50, barAlpha) end
     if player.armorProtection == 2 then barColor = Color(236,0,0, barAlpha) end
 
     local barBackgroundColor;    
-    if player.armorProtection == 0 then barBackgroundColor = Color(14,53,9, barAlpha) end
-    if player.armorProtection == 1 then barBackgroundColor = Color(122,111,50, barAlpha) end
+    if player.armorProtection == 0 then barBackgroundColor = Color(0,100,0, barAlpha) end
+    if player.armorProtection == 1 then barBackgroundColor = Color(122,122,50, barAlpha) end
     if player.armorProtection == 2 then barBackgroundColor = Color(141,30,10, barAlpha) end    
 
     -- Helpers
@@ -168,7 +169,7 @@ function ArmorBar:draw()
     local fontColor;
     
     if colorNumber then fontColor = barColor
-    else fontColor = Color(230,230,230);
+    else fontColor = Color(255,255,255);
     end
     
     nvgFontSize(fontSize);

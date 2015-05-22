@@ -11,7 +11,7 @@ function drawBuff(x, y, name, col, time)
 	local alpha = 255;
 
 	nvgFontSize(25);
-	nvgFontFace("TitilliumWeb-Bold");
+	nvgFontFace(FONT_HUD);
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_BASELINE);
 
 	-- time
@@ -58,9 +58,9 @@ function drawBuff(x, y, name, col, time)
 	end
 
 	-- bg
-	--nvgFontBlur(2);
-	--nvgFillColor(Color(0, 0, 0, alpha));
-	--nvgText(x, y + 1, name);
+	nvgFontBlur(2);
+	nvgFillColor(Color(0, 0, 0, alpha));
+	nvgText(x, y + 1, name);
 
 	-- foreground
 	local c = col;

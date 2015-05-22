@@ -23,6 +23,28 @@ local function sortByScore(a, b)
 	return a.name < b.name;
 end
 
+local function sortForRaceMode(a, b)
+	-- sort by state first, so we get editor/specs at bottom
+	if a.state ~= b.state then
+		return a.state < b.state;
+	end
+
+	-- 0 (not finish) we want at bottom
+	local ascore = a.score;
+	local bscore = b.score;
+	if ascore == 0 then ascore = 1000000000; end
+	if bscore == 0 then bscore = 1000000000; end
+
+	-- sort by score next
+	-- (LOWER IS BETTER)
+	if ascore ~= bscore then
+		return ascore < bscore;
+	end
+
+	-- otherwise, sort by name (so we don't get random sorting if two players have same score)
+	return a.name < b.name;
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local function DrawRow(x, y, name, state, lag, pl, colorFirst, colorRest)
@@ -67,6 +89,7 @@ function Scoreboard:draw()
     -- Early out if HUD shouldn't be shown.
     --if not shouldShowHUD() then return end;
 	if not showScores and world.gameState ~= GAME_STATE_GAMEOVER then return end;
+	if replayName == "menu" then return end;
 	
 	-- inspect gamemode
 	local gameMode = gamemodes[world.gameModeIndex];
@@ -121,7 +144,7 @@ function Scoreboard:draw()
 
 	-- draw bg
 	nvgBeginPath();
-	nvgRoundedRect(x, y, w, h, 10);
+	nvgRect(x, y, w, h, 10);
 	nvgFillColor(Color(34+10, 36+10, 40+10, 150));
 	nvgFill();
 	nvgStrokeColor(colBorder);
@@ -129,7 +152,7 @@ function Scoreboard:draw()
 	
 	-- behind header
 	nvgBeginPath();	
-	nvgRoundedRect(x+4, y+4, w-8, 33, 10);
+	nvgRect(x+4, y+4, w-8, 33, 10);
 	nvgFillColor(Color(34+20, 36+20, 40+20, 50));
 	nvgFill();
 	
@@ -149,7 +172,11 @@ function Scoreboard:draw()
 	nvgStroke();
 	
 	-- sort players by score
-	table.sort(connectedPlayers, sortByScore);
+	if gameMode.shortName == "race" then
+		table.sort(connectedPlayers, sortForRaceMode);
+	else
+		table.sort(connectedPlayers, sortByScore);
+	end
 
 	-- teams header
 	if gameMode.hasTeams then
@@ -166,8 +193,17 @@ function Scoreboard:draw()
 	teamy[2] = iy;
 	for index = 1, connectedPlayerCount do
 		local player = connectedPlayers[index];
-
+		
 		local state = player.score;
+		
+		if gameMode.shortName == "race" then
+			if player.score == 0 then
+				state = "(no finish)";
+			else
+				state = FormatTimeToDecimalTime(player.score);
+			end
+		end
+
 		if world.gameState == GAME_STATE_WARMUP then
 			if gameMode.requiresReadyUp then
 				state = player.ready and "(Ready)" or "(Notready)";
@@ -181,7 +217,7 @@ function Scoreboard:draw()
 			playerIsFriendly = player.team == localPlayer.team;
 		end
 
-		local colName = playerIsFriendly and Color(80, 80, 230) or Color(230, 80, 80);
+		local colName = playerIsFriendly and Color(255, 255, 255) or Color(0, 255, 0);
 
 		local team = gameMode.hasTeams and player.team or 1;
 

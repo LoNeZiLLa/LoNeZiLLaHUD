@@ -29,6 +29,7 @@ deathSuicideMessages[DAMAGE_TYPE_LAVA] = "%s melted!";
 deathSuicideMessages[DAMAGE_TYPE_DROWN] = "%s drowned!";
 deathSuicideMessages[DAMAGE_TYPE_OUTOFWORLD] = "%s fell out of the world!";
 deathSuicideMessages[DAMAGE_TYPE_OVERTIME] = "%s's health ran out!";
+deathSuicideMessages[DAMAGE_TYPE_SUICIDE] = "%s has committed suicide";
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -46,6 +47,40 @@ local function formatDeathMessage(logEntry)
 		return nil;
 	end
 	return string.format(fmt, logEntry.deathKiller, logEntry.deathKilled);
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+local function formatRaceMessage(logEntry)
+	
+	-- is this event for the player we're watching?
+	local isLocal = logEntry.racePlayerIndex == playerIndexCameraAttachedTo;
+
+	-- find topscore
+	local topScore = 0;
+	for k, v in pairs(players) do
+		if v.connected and v.score ~= 0 then
+			if topScore == 0 then
+				topScore = v.score;
+			else
+				topScore = math.min(topScore, v.score);
+			end
+		end
+	end
+
+	if logEntry.raceEvent == RACE_EVENT_FINISH or logEntry.raceEvent == RACE_EVENT_FINISHANDWASRECORD then
+		local formattedTime = FormatTimeToDecimalTime(logEntry.raceTime);
+
+		-- fixme: if players draw, if someone finishes in EXACTLY the same time, we can't tell the difference here
+		local optText = "";
+		if topScore == logEntry.raceTime and logEntry.raceEvent == RACE_EVENT_FINISHANDWASRECORD then
+			optText = ", and is in the lead!";
+		end
+
+		return string.format("%s finished race in %s%s", logEntry.raceName, formattedTime, optText);
+	end
+
+	return nil;
 end
 
 --------------------------------------------------------------------------------
@@ -68,10 +103,15 @@ function ChatLog:draw()
 	for k, v in pairs(log) do
 		logCount = logCount + 1;
 	end
+
+	-- no chatlog in menu replay
+	if replayName == "menu" then
+		return false;
+	end
 	
 	-- prep
 	nvgFontSize(FONT_SIZE_DEFAULT);
-	nvgFontFace(FONT_TEXT);
+	nvgFontFace(FONT_HUD);
 	nvgTextAlign(NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE);
 	
 	-- read input
@@ -91,7 +131,7 @@ function ChatLog:draw()
 
 		-- draw bg
 		nvgBeginPath();
-		nvgRoundedRect(x - borderPad, bordery - h - borderPad, w + borderPad * 2, h + borderPad * 2, 10);
+		nvgRect(x - borderPad, bordery - h - borderPad, w + borderPad * 2, h + borderPad * 2, 10);
 		nvgFillColor(bgCol);
 		nvgFill();
 		nvgStrokeColor(borderCol);
@@ -195,18 +235,23 @@ function ChatLog:draw()
 		elseif logEntry.type == LOG_TYPE_DEATHMESSAGE then
 			col = Color(255, 30, 30);
 			text = formatDeathMessage(logEntry);
+		elseif logEntry.type == LOG_TYPE_RACEEVENT then
+			col = Color(255, 30, 30);
+			text = formatRaceMessage(logEntry);			
 		end
 
-		-- bg
-		nvgFontBlur(2);
-		nvgFillColor(Color(0, 0, 0, 255*intensity));
-		nvgText(x, y + 1, text);
+		if text ~= nil then
+			-- bg
+			nvgFontBlur(2);
+			nvgFillColor(Color(0, 0, 0, 255*intensity));
+			nvgText(x, y + 1, text);
 
-		-- foreground
-		nvgFontBlur(0);
-		nvgFillColor(col);
-		nvgText(x, y, text);
+			-- foreground
+			nvgFontBlur(0);
+			nvgFillColor(col);
+			nvgText(x, y, text);
 
-		y = y - 24;
+			y = y - 24;
+		end
 	end
 end

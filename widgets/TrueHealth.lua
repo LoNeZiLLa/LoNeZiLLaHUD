@@ -72,6 +72,7 @@ function TrueHealth:draw()
 
     -- Early out if HUD shouldn't be shown.
     if not shouldShowHUD() then return end;
+	if isRaceMode() then return end;
 
    	-- Find player 
 	local player = getPlayer();

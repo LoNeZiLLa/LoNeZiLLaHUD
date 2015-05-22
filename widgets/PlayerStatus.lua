@@ -88,7 +88,7 @@ function PlayerStatus:draw()
 				end
 			end
 
-			if numPlaying >= 2 then
+			if gamemode.playersRequired ~= nil and numPlaying >= gamemode.playersRequired then
 				state = string.format(GAMESTRING_warmup_players_ready, numReady, numPlaying);
 			else
 				state = GAMESTRING_warmup_need_2_players;

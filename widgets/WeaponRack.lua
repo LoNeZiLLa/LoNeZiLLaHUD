@@ -11,21 +11,22 @@ function WeaponRack:draw()
 
     -- Early out if HUD shouldn't be shown.
     if not shouldShowHUD() then return end;
+	if isRaceMode() then return end;
 
 	local translucency = 192;
-
+	
    	-- Find player
 	local player = getPlayer();
 
     local weaponCount = 9; -- table.maxn(player.ammo);
     local spaceCount = weaponCount - 1;
-
+    
     -- Options
     local verticalRack = false;
     local weaponWidth = 100;
     local weaponHeight = 30;
     local weaponSpacing = 5; -- 0 or -1 to remove spacing
-
+    
     -- Helpers
     local rackWidth = (weaponWidth * weaponCount) + (weaponSpacing * spaceCount);
     local rackLeft = -(rackWidth / 2);
@@ -43,7 +44,7 @@ function WeaponRack:draw()
 
         local weapon = player.weapons[weaponIndex];
 		local color = weapon.color;
-
+    
 		-- if we havent picked up the weapon, colour it grey
 		if not weapon.pickedup then
 			color.r = 128;
@@ -52,16 +53,16 @@ function WeaponRack:draw()
 		end
 
         local backgroundColor = Color(0,0,0,65)
-
+        
         -- Frame background
         nvgBeginPath();
         nvgRect(weaponX,weaponY,weaponWidth,weaponHeight);
 
-        if weaponIndex == player.weaponIndexSelected then
+        if weaponIndex == player.weaponIndexSelected then 
             backgroundColor.r = lerp(backgroundColor.r, color.r, player.weaponSelectionIntensity);
             backgroundColor.g = lerp(backgroundColor.g, color.g, player.weaponSelectionIntensity);
             backgroundColor.b = lerp(backgroundColor.b, color.b, player.weaponSelectionIntensity);
-            backgroundColor.a = lerp(backgroundColor.a, 96, player.weaponSelectionIntensity);
+            backgroundColor.a = lerp(backgroundColor.a, 128, player.weaponSelectionIntensity);
 
 			local outlineColor = Color(
 				color.r,
@@ -88,13 +89,13 @@ function WeaponRack:draw()
             iconY = weaponY + (weaponHeight / 2);
         end
 
-        if weaponIndex == player.weaponIndexSelected then
+        if weaponIndex == player.weaponIndexSelected then 
 			iconColor.r = lerp(iconColor.r, 255, player.weaponSelectionIntensity);
 			iconColor.g = lerp(iconColor.g, 255, player.weaponSelectionIntensity);
 			iconColor.b = lerp(iconColor.b, 255, player.weaponSelectionIntensity);
 			iconColor.a = lerp(iconColor.a, 255, player.weaponSelectionIntensity);
 		end
-
+        
         local svgName = "internal/ui/icons/weapon"..weaponIndex;
 		nvgFillColor(iconColor);
 	    nvgSvg(svgName, iconX, iconY, iconRadius);
@@ -117,13 +118,13 @@ function WeaponRack:draw()
 	    nvgFontBlur(0);
 	    nvgFillColor(Color(255,255,255));
 	    nvgText(ammoX, weaponY, ammoCount);
-
+        
         if verticalRack == true then
             weaponY = weaponY + weaponHeight + weaponSpacing;
         else
             weaponX = weaponX + weaponWidth + weaponSpacing;
         end
-
+       
     end
 
 end

@@ -12,6 +12,7 @@ function HealthBar:draw()
  
     -- Early out if HUD shouldn't be shown.
     if not shouldShowHUD() then return end;
+	if isRaceMode() then return end;
 
     -- Find player 
     local player = getPlayer();
@@ -19,13 +20,13 @@ function HealthBar:draw()
     -- Options
     local showFrame = true;
     local showIcon = true;
-    local flatBar = true;
+    local flatBar = false;
     local colorNumber = false;
-    local colorIcon = true;
+    local colorIcon = false;
     
     -- Size and spacing
-    local frameWidth = 460;
-    local frameHeight = 55;
+    local frameWidth = 600;
+    local frameHeight = 45;
     local framePadding = 5;
     local numberSpacing = 100;
     local iconSpacing;
@@ -36,19 +37,18 @@ function HealthBar:draw()
 	
     -- Colors
     local frameColor = Color(0,0,0,128);
-    local barAlpha = 255;
-    local iconAlpha = 255;
-	local whiteStroke = Color(255,255,255,255);
+    local barAlpha = 192;
+    local iconAlpha = 64;
 
     local barColor;
     if player.health > 100 then barColor = Color(16,116,217, barAlpha) end
-    if player.health <= 100 then barColor = Color(2,167,46, barAlpha) end
+    if player.health <= 100 then barColor = Color(0,255,0, barAlpha) end
     if player.health <= 80 then barColor = Color(255,176,14, barAlpha) end
     if player.health <= 30 then barColor = Color(236,0,0, barAlpha) end
 
     local barBackgroundColor;    
     if player.health > 100 then barBackgroundColor = Color(10,68,127, barAlpha) end
-    if player.health <= 100 then barBackgroundColor = Color(14,53,9, barAlpha) end
+    if player.health <= 100 then barBackgroundColor = Color(0,100,0, barAlpha) end
     if player.health <= 80 then barBackgroundColor = Color(105,67,4, barAlpha) end
     if player.health <= 30 then barBackgroundColor = Color(141,30,10, barAlpha) end    
 
@@ -113,7 +113,7 @@ function HealthBar:draw()
     local fontColor;
 
     if colorNumber then fontColor = barColor
-    else fontColor = Color(230,230,230);
+    else fontColor = Color(255,255,255);
     end
 
     nvgFontSize(fontSize);

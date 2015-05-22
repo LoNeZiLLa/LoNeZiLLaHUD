@@ -63,6 +63,11 @@ function Crosshairs:draw(forceDraw)
 		if player.health <= 0 then
 			return;
 		end
+		
+		-- menu replay background => no crosshair
+		if replayName == "menu" then
+			return false;
+		end
 	end
     
     -- Colors

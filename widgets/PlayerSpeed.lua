@@ -16,7 +16,7 @@ function PlayerSpeed:draw()
     local player = getPlayer()
     local speed = math.ceil(player.speed)
 
-	local fontSize = 20;
+	local fontSize = 42;
     local frameX = 0;
 	local frameY = 0;
     local frameWidth = 140

@@ -76,10 +76,15 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function MenuBar:draw()
-	if clientGameState == STATE_DISCONNECTED or isInMenu() then
-		MenuBar.visibility = math.min(1, MenuBar.visibility + deltaTime*4);
+	local showMenuBar = clientGameState == STATE_DISCONNECTED or isInMenu();
+	if replayName == "menu" then
+		showMenuBar = true;
+	end
+
+	if showMenuBar then
+		MenuBar.visibility = math.min(1, MenuBar.visibility + deltaTimeRaw*4);
 	else
-		MenuBar.visibility = math.max(0, MenuBar.visibility - deltaTime*4);
+		MenuBar.visibility = math.max(0, MenuBar.visibility - deltaTimeRaw*4);
 	end
 
 	if MenuBar.visibility <= 0 then
@@ -136,7 +141,9 @@ function MenuBar:draw()
 	local buttonSpacing = 180;
 	local buttonWidth = 150
 
-    if clientGameState == STATE_DISCONNECTED then
+	-- when we're in menu replay, we still want to still connect messages on menubar
+	local consideredDisconnected = (clientGameState == STATE_DISCONNECTED) or (replayName == "menu");
+    if consideredDisconnected then
 		-- start
         if uiMenuBarButton("START SERVER", fontx, y, buttonWidth, height, a) then
 	    	setMenuStack("StartGameMenu");

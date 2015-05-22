@@ -16,13 +16,31 @@ function Timer:draw()
 		(world.gameState == GAME_STATE_ROUNDACTIVE) then
 
 		local timeRemaining = world.gameTimeLimit - world.gameTime;
-		if timeRemaining < 0 then
+		local currentTime = world.gameTime;
+		local countUp = true;
+		local showSeconds = false;
+
+		if (timeRemaining < 0) then
 			timeRemaining = 0;
+		end
+
+		if countUp == true then
+			timeRemaining = currentTime;
+		else
+			timeRemaining = world.gameTimeLimit - world.gameTime;
 		end
 
 		local t = FormatTime(timeRemaining);
 		local textTime = string.format("%d:%02d", t.minutes, t.seconds);
-		
+		local onlyMinutes = string.format("%d:xx", t.minutes);
+
+		-- showSeconds on Clock
+		if showSeconds == false then
+			textTime = onlyMinutes;
+		else
+			textTime = string.format("%d:%02d", t.minutes, t.seconds);
+		end
+
 		local fontSize = 52;
         local frameX = 0;
 		local frameY = 0;
@@ -32,7 +50,7 @@ function Timer:draw()
         local textColor = Color(255,255,255,255);
         local lowTimeFrameColor = Color(200,0,0,64);
         local lowTimeTextColor = Color(255,255,255,255);
-	
+
         -- Options
         local lowTime = 30000; -- in milliseconds
 
@@ -40,6 +58,7 @@ function Timer:draw()
             frameColor = lowTimeFrameColor;
             textColor = lowTimeTextColor;
         end
+
 
         -- Background
         nvgBeginPath();

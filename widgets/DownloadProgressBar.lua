@@ -24,7 +24,13 @@ local loadingtips =
     "Powerups respawn every 90 seconds",
     "Thank you for supporting us during Early Access!",
     "Your friends should buy Reflex",
-    "Check out www.phgp.tv for news, articles and 24/7 streams!"
+    "Check out www.phgp.tv for news, articles and 24/7 streams!",
+	"You can vote for a new map by typing 'callvote map' in the console",
+	"You can vote for a new game mode by with 'callvote mode' in the console",
+	"You can vote for a new map by typing 'callvote map' in the console",
+	"You can vote for a new game mode by with 'callvote mode' in the console",
+	"You can vote for a new map by typing 'callvote map' in the console",
+	"You can vote for a new game mode by with 'callvote mode' in the console"
 };
 
 --------------------------------------------------------------------------------

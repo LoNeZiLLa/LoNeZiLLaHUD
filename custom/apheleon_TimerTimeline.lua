@@ -1,9 +1,25 @@
 require "base/internal/ui/reflexcore"
-require "base/internal/ui/widgets/custom/reflexcore_lz"
+
 apheleon_TimerTimeline =
 {
+	-- user data, we'll save this into engine so it's persistent across loads
+	userData = {};
 };
 registerWidget("apheleon_TimerTimeline");
+
+
+function apheleon_TimerTimeline:initialize()
+	-- load data stored in engine
+	self.userData = loadUserData();
+	
+	-- ensure it has what we need
+	CheckSetDefaultValue(self, "userData", "table", {});
+	CheckSetDefaultValue(self.userData, "timelineDuration", "number", 30);
+	CheckSetDefaultValue(self.userData, "timelineBgColorEnabled", "boolean", true);
+	CheckSetDefaultValue(self.userData, "showAvailableItemsEnabled", "boolean", true);
+	CheckSetDefaultValue(self.userData, "showUpcomingItemsBlinkingEnabled", "boolean", true);
+
+end
 
 -- List of item types that are used in this widget
 
@@ -11,18 +27,23 @@ local PickupVis = {};
 PickupVis[PICKUP_TYPE_ARMOR50] = {};
 PickupVis[PICKUP_TYPE_ARMOR50].svg = "internal/ui/icons/armor";
 PickupVis[PICKUP_TYPE_ARMOR50].color = Color(0,255,0);
+PickupVis[PICKUP_TYPE_ARMOR50].colorbg = Color(0,128,0,90);
 PickupVis[PICKUP_TYPE_ARMOR100] = {};
 PickupVis[PICKUP_TYPE_ARMOR100].svg = "internal/ui/icons/armor";
 PickupVis[PICKUP_TYPE_ARMOR100].color = Color(255,255,0);
+PickupVis[PICKUP_TYPE_ARMOR100].colorbg = Color(128,128,0,90);
 PickupVis[PICKUP_TYPE_ARMOR150] = {};
 PickupVis[PICKUP_TYPE_ARMOR150].svg = "internal/ui/icons/armor";
 PickupVis[PICKUP_TYPE_ARMOR150].color = Color(255,0,0);
+PickupVis[PICKUP_TYPE_ARMOR150].colorbg = Color(128,0,0,90);
 PickupVis[PICKUP_TYPE_HEALTH100] = {};
 PickupVis[PICKUP_TYPE_HEALTH100].svg = "internal/ui/icons/health";
 PickupVis[PICKUP_TYPE_HEALTH100].color = Color(60,80,255);
+PickupVis[PICKUP_TYPE_HEALTH100].colorbg = Color(30,40,128,90);
 PickupVis[PICKUP_TYPE_POWERUPCARNAGE] = {};
 PickupVis[PICKUP_TYPE_POWERUPCARNAGE].svg = "internal/ui/icons/carnage";
 PickupVis[PICKUP_TYPE_POWERUPCARNAGE].color = Color(255,120,128);
+PickupVis[PICKUP_TYPE_POWERUPCARNAGE].colorbg = Color(128,60,64,90);
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -30,12 +51,16 @@ PickupVis[PICKUP_TYPE_POWERUPCARNAGE].color = Color(255,120,128);
 -- Create a list of custom item labels to help differentiate between duplicate items
 
 customItemLabels = {};
-customItemLabels["cpm3"..PICKUP_TYPE_ARMOR100..1] = "Rail";
-customItemLabels["cpm3"..PICKUP_TYPE_ARMOR100..2] = "LG";
+customItemLabels["cpm3"..PICKUP_TYPE_ARMOR100..1] = "LG";
+customItemLabels["cpm3"..PICKUP_TYPE_ARMOR100..2] = "Rail";
 customItemLabels["cpm22"..PICKUP_TYPE_ARMOR50..1] = "GL";
 customItemLabels["cpm22"..PICKUP_TYPE_ARMOR50..2] = "RL";
-customItemLabels["dp5"..PICKUP_TYPE_ARMOR100..1] = "Plasma";
-customItemLabels["dp5"..PICKUP_TYPE_ARMOR100..2] = "Tele";
+customItemLabels["dp5"..PICKUP_TYPE_ARMOR100..1] = "Tele";
+customItemLabels["dp5"..PICKUP_TYPE_ARMOR100..2] = "Plasma";
+customItemLabels["thct5"..PICKUP_TYPE_ARMOR100..1] = "Blue Room";
+customItemLabels["thct5"..PICKUP_TYPE_ARMOR100..2] = "Red Room";
+customItemLabels["thct7"..PICKUP_TYPE_ARMOR100..1] = "GL";
+customItemLabels["thct7"..PICKUP_TYPE_ARMOR100..2] = "LG";
 
 function mapItemLabel(map, itemtype, itemlabel)
 	if not (customItemLabels[map:lower()..itemtype..itemlabel] == nil) then
@@ -63,7 +88,7 @@ function apheleon_TimerTimeline:draw()
     
     -- Timeline History Duration
 	-- num of historical seconds to show in the timeline
-    local timelineDuration = 30
+    local timelineDuration = self.userData.timelineDuration
 
 	-- Frame Size
 	local frameHeight = 50
@@ -85,34 +110,6 @@ function apheleon_TimerTimeline:draw()
 	local spawnBoxEntryWidth = 13
 	local spawnBoxRight = frameLeft - 25;
 	local spawnBoxPadding = 4
-
-	-- Draw the timeline frame
-    local frameBackgroundColor = Color(0,0,0,90)
-    nvgBeginPath();
-    nvgRoundedRect(frameLeft ,frameTop,frameWidth,frameHeight,0);
-    nvgFillColor(frameBackgroundColor);
-    nvgFill();
-
-    -- Draw the timeline dividing line strokes
-    -- TODO: Order the ietms based on when they spawned
-    for i=5, timelineDuration-1, 5 do
-		markerX = timelineWidth * i / (timelineDuration)
-		markerX = markerX + timelineLeft
-
-		nvgStrokeColor(Color(255,255,255, 200));
-		nvgStrokeWidth(2)
-
-		nvgBeginPath();
-		nvgMoveTo(markerX, frameTop);
-		nvgLineTo(markerX, frameTop + (frameHeight / 4));
-		nvgStroke();
-
-		nvgBeginPath();
-		nvgMoveTo(markerX, frameBottom);
-		nvgLineTo(markerX, frameBottom - (frameHeight / 4));
-		nvgStroke();
-    end
-
 
 	--=========================
 	-- Adds number labels for items that appear multiple times on the map
@@ -184,6 +181,42 @@ function apheleon_TimerTimeline:draw()
 		small.nextUp = true;
 	end
 
+	-- set frame color to the color of the next upcoming item
+    frameBackgroundColor = Color(0,0,0,90)
+	for i=1, #pickupTimers do
+		if (pickupTimers[i].nextUp == true) then
+			-- set bg color
+			if(self.userData.timelineBgColorEnabled) then
+				frameBackgroundColor = PickupVis[pickupTimers[i].type].colorbg
+			end
+		end
+	end
+
+	-- Draw the timeline frame
+    nvgBeginPath();
+    nvgRoundedRect(frameLeft ,frameTop,frameWidth,frameHeight,0);
+    nvgFillColor(frameBackgroundColor);
+    nvgFill();
+
+    -- Draw the timeline dividing line strokes
+    for i=5, timelineDuration-1, 5 do
+		markerX = timelineWidth * i / (timelineDuration)
+		markerX = markerX + timelineLeft
+
+		nvgStrokeColor(Color(255,255,255, 200));
+		nvgStrokeWidth(2)
+
+		nvgBeginPath();
+		nvgMoveTo(markerX, frameTop);
+		nvgLineTo(markerX, frameTop + (frameHeight / 4));
+		nvgStroke();
+
+		nvgBeginPath();
+		nvgMoveTo(markerX, frameBottom);
+		nvgLineTo(markerX, frameBottom - (frameHeight / 4));
+		nvgStroke();
+    end
+
 	--=======================
     -- iterate pickups for rendering
 	for i = 1, #pickupTimers do
@@ -196,8 +229,8 @@ function apheleon_TimerTimeline:draw()
 			if pickup.timeUntilRespawn > timelineDuration * 1000 then break end;
 
 			-- Configure the item icons and color
-nvgFontFace(FONT_HUD);
-		    local iconRadius = 20; -- update this?
+
+		    local iconRadius = 20; -- update this to match the timeline frame size?
 
 		    -- scaledTimerLocation gives a 0.0 to 1.0 number of how close the item is to spawning
 		    --  along the timelineDuration (e.g. 40 seconds wide)
@@ -216,32 +249,6 @@ nvgFontFace(FONT_HUD);
 				iconX = ( timelineWidth * 30000 / (timelineDuration * 1000) ) + timelineLeft
 				pickup.label = "HELD"
 			end
-
-	        --=====
-	  --       local iconColor = Color(255,255,255);
-	  --       local iconSvg = "internal/ui/icons/armor";
-			-- if pickup.type == PICKUP_TYPE_ARMOR50 then
-			-- 	iconColor = Color(0,255,0);
-			-- elseif pickup.type == PICKUP_TYPE_ARMOR100 then
-			-- 	iconColor = Color(255,255,0);
-			-- elseif pickup.type == PICKUP_TYPE_ARMOR150 then
-			-- 	iconColor = Color(255,0,0);
-			-- elseif pickup.type == PICKUP_TYPE_HEALTH100 then
-			-- 	iconSvg = "internal/ui/icons/health";
-			-- 	iconColor = Color(60,80,255);
-
-			-- 	-- when mega is held set color to light blue and position at the 30 sec mark 
-			-- 	if not pickup.canSpawn and timelineDuration >= 30  then
-			-- 		iconColor = Color(150,161,255);
-			-- 		iconX = ( timelineWidth * 30000 / (timelineDuration * 1000) ) + timelineLeft
-			-- 		pickup.label = "HELD"
-			-- 	end
-
-			-- elseif pickup.type == PICKUP_TYPE_POWERUPCARNAGE then
-			-- 	iconSvg = "internal/ui/icons/carnage";
-			-- 	iconColor = Color(255,120,128);			
-			-- end
-			--======
 	      
 			-- Draw the icons, time remaining text, and labels of items that are taken 
 		    if pickup.timeUntilRespawn > 0 or not pickup.canSpawn then
@@ -249,16 +256,16 @@ nvgFontFace(FONT_HUD);
 				nvgFillColor(iconColor);
 
 				-- Make the icons get bigger every second for the last 5 seconds
-				if ( pickup.nextUp == true and (
-						(pickup.timeUntilRespawn < 5100 and pickup.timeUntilRespawn > 4900)
-						or (pickup.timeUntilRespawn < 4100 and pickup.timeUntilRespawn > 3900)
-						or (pickup.timeUntilRespawn < 3100 and pickup.timeUntilRespawn > 2900)
-						or (pickup.timeUntilRespawn < 2100 and pickup.timeUntilRespawn > 1900)
-						or (pickup.timeUntilRespawn < 1100 and pickup.timeUntilRespawn > 900) 
+				if ( pickup.nextUp == true and self.userData.showUpcomingItemsBlinkingEnabled and (
+						(pickup.timeUntilRespawn < 5100 and pickup.timeUntilRespawn > 5000)
+						or (pickup.timeUntilRespawn < 4150 and pickup.timeUntilRespawn > 4000)
+						or (pickup.timeUntilRespawn < 3150 and pickup.timeUntilRespawn > 3000)
+						or (pickup.timeUntilRespawn < 2150 and pickup.timeUntilRespawn > 2000)
+						or (pickup.timeUntilRespawn < 1150 and pickup.timeUntilRespawn > 1000) 
 						or (pickup.timeUntilRespawn < 200) 
 						)
 					) then
-					iconRadius = iconRadius + 10
+					iconRadius = iconRadius + 15
 				end
 
 			    nvgSvg(iconSvg, iconX, iconY, iconRadius);
@@ -294,7 +301,7 @@ nvgFontFace(FONT_HUD);
 			end
 
 			-- Draw list of items that are spawned
-			if pickup.timeUntilRespawn == 0 and pickup.canSpawn then
+			if pickup.timeUntilRespawn == 0 and pickup.canSpawn and self.userData.showAvailableItemsEnabled then
 
 				-- Draw black drop shaddow for each spawned item
 			    nvgBeginPath();
@@ -312,4 +319,25 @@ nvgFontFace(FONT_HUD);
 			end
 		end
 	end
+end
+
+function apheleon_TimerTimeline:drawOptions(x,y)
+
+	local user = self.userData
+
+	uiLabel("Timeline Duration", x, y);
+	user.timelineDuration = clampTo2Decimal(uiEditBox(user.timelineDuration, x + 290, y, 80))
+	y = y + 40;
+
+	user.timelineBgColorEnabled = uiCheckBox(user.timelineBgColorEnabled, "Color Timeline By Next Upcoming Item", x, y);
+	y = y + 40;
+
+	user.showAvailableItemsEnabled = uiCheckBox(user.showAvailableItemsEnabled, "Show List of Available Items", x, y);
+	y = y + 40;
+
+	user.showUpcomingItemsBlinkingEnabled = uiCheckBox(user.showUpcomingItemsBlinkingEnabled, "Blink Upcoming Items on the Timeline", x, y);
+	y = y + 40;
+
+
+	saveUserData(user)
 end

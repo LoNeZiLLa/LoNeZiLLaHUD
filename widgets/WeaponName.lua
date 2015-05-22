@@ -18,7 +18,7 @@ function WeaponName:draw()
 	local alpha = 255 * player.weaponSelectionIntensity;
 
 	nvgFontSize(36);
-	nvgFontFace("TitilliumWeb-Bold");
+	nvgFontFace(FONT_HUD);
 	nvgTextAlign(NVG_ALIGN_CENTER, NVG_ALIGN_BASELINE);
 
 	local weapon = player.weapons[player.weaponIndexSelected];

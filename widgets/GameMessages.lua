@@ -169,7 +169,8 @@ function GameMessages:draw()
 				local text = "";
 
 				if world.overTimeCount == 0 then
-					drawText("FIGHT");
+					local gameMode = gamemodes[world.gameModeIndex];
+					drawText(gameMode.shortName == "race" and "RUN" or "FIGHT");
 				elseif world.overTimeCount == 1 then
 					drawText("OVERTIME!");
 				else
